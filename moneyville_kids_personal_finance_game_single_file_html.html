@@ -1,0 +1,337 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Moneyville — A Kid's Personal Finance Adventure</title>
+  <style>
+    :root{--bg:#f6fbff;--card:#ffffff;--accent:#2b8efb;--accent-2:#ffd166;--muted:#6b7280}
+    *{box-sizing:border-box;font-family:Inter, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial}
+    body{margin:0;background:linear-gradient(180deg,var(--bg),#eaf6ff);color:#0f172a}
+    .wrap{max-width:900px;margin:28px auto;padding:20px}
+    header{display:flex;align-items:center;gap:12px}
+    h1{margin:0;font-size:1.6rem}
+    .card{background:var(--card);border-radius:12px;padding:18px;box-shadow:0 6px 20px rgba(12,36,64,0.08)}
+    .center{text-align:center}
+    .big{font-size:2.4rem;font-weight:700}
+    button{background:var(--accent);color:white;border:0;padding:10px 14px;border-radius:10px;cursor:pointer;font-weight:600}
+    button.ghost{background:transparent;color:var(--accent);border:2px solid var(--accent);}
+    .row{display:flex;gap:12px;flex-wrap:wrap}
+    .hidden{display:none}
+    .score{background:linear-gradient(90deg,#ffe9b3,#ffd166);padding:10px;border-radius:10px;font-weight:700}
+    .choices button{display:block;margin:8px 0;text-align:left;width:100%}
+    .progress-wrap{display:flex;align-items:center;justify-content:space-between;gap:12px}
+    .bar{flex:1;height:14px;background:#e6eefc;border-radius:10px;overflow:hidden}
+    .bar > i{display:block;height:100%;background:var(--accent);width:0}
+    .coins{font-weight:800}
+    footer{margin-top:14px;font-size:0.9rem;color:var(--muted)}
+    .shop-item{display:flex;justify-content:space-between;align-items:center;padding:8px;border-radius:8px}
+    .sparkle{animation:spin 4s linear infinite}
+    @keyframes spin{from{transform:rotate(0)}to{transform:rotate(360deg)}}
+    .badge{display:inline-block;padding:6px 8px;border-radius:999px;background:rgba(43,142,251,0.12);color:var(--accent);font-weight:700}
+    label{display:block;margin:8px 0;font-weight:600}
+    input[type=range]{width:100%}
+    .hint{font-size:0.9rem;color:var(--muted)}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header class="card row" role="banner">
+      <div style="flex:1">
+        <h1>💰 Moneyville — A Kid's Personal Finance Adventure</h1>
+        <div class="hint">Learn saving, budgeting, and smart choices while earning coins and stickers!</div>
+      </div>
+      <div style="display:flex;flex-direction:column;align-items:flex-end;gap:8px">
+        <div class="score">Coins: <span id="coinCount">0</span> 🪙</div>
+        <div class="badge" id="levelBadge">Beginner</div>
+      </div>
+    </header>
+
+    <!-- Start Screen -->
+    <section id="start" class="card center" style="margin-top:16px">
+      <div class="big">Welcome to Moneyville!</div>
+      <p>Pick a character and start your adventure. Make choices, save coins, and unlock fun rewards.</p>
+      <div class="row" style="justify-content:center;margin:12px 0">
+        <button id="startBtn">Start the Adventure</button>
+        <button class="ghost" id="howBtn">How to Play</button>
+      </div>
+      <div style="margin-top:8px">Character: <select id="char"><option>Alex</option><option>Priya</option><option>Liam</option><option>Sana</option></select></div>
+    </section>
+
+    <!-- How to Play Modal (simple) -->
+    <section id="how" class="card hidden" style="margin-top:16px">
+      <h3>How to Play</h3>
+      <ul>
+        <li>Play three mini-games: Budget Builder, Save for a Goal, and Money Quiz.</li>
+        <li>Earn coins and badges by making smart choices.</li>
+        <li>Use coins in the Shop for fun stickers (no real money).</li>
+      </ul>
+      <div style="text-align:center"><button id="howClose">Okay, let's play!</button></div>
+    </section>
+
+    <!-- Game Area -->
+    <section id="gameArea" class="hidden">
+
+      <!-- Level 1: Budget Builder -->
+      <div id="level1" class="card" style="margin-top:16px">
+        <h2>Level 1 — Budget Builder 🧾</h2>
+        <p class="hint">You have <strong>$100</strong> allowance this week. Choose how to spend it so you can still save.</p>
+        <div class="row">
+          <div style="flex:1">
+            <div class="card">
+              <div style="font-weight:700">Your choices</div>
+              <div class="choices">
+                <label><input type="checkbox" class="expense" data-cost="30"> Video Game (30)</label>
+                <label><input type="checkbox" class="expense" data-cost="15"> Pizza with friends (15)</label>
+                <label><input type="checkbox" class="expense" data-cost="25"> New sneakers (25)</label>
+                <label><input type="checkbox" class="expense" data-cost="10"> Art supplies (10)</label>
+                <label><input type="checkbox" class="expense" data-cost="5"> Ice cream (5)</label>
+              </div>
+            </div>
+          </div>
+          <div style="width:240px">
+            <div class="card center">
+              <div style="font-weight:700">Allowance</div>
+              <div style="font-size:1.4rem;margin:8px 0">$<span id="allowanceLeft">100</span></div>
+              <div class="hint">Save at least $30 to earn the Saver Badge.</div>
+              <div style="margin-top:12px" class="row">
+                <button id="checkBudget">Check Budget</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Level 2: Save for a Goal -->
+      <div id="level2" class="card hidden" style="margin-top:16px">
+        <h2>Level 2 — Save for a Goal 🎯</h2>
+        <p class="hint">You want a cool backpack that costs $60. Decide how much to put in your piggy bank this week.</p>
+        <div style="display:flex;gap:12px;align-items:center">
+          <div style="flex:1">
+            <label for="saveRange">Move the slider to save coins into your piggy bank:</label>
+            <input id="saveRange" type="range" min="0" max="100" value="20">
+            <div>Saved: $<span id="savedAmount">20</span></div>
+            <div class="hint">If you save $40 or more this round, you get a Bonus Coin Pack.</div>
+          </div>
+          <div style="width:180px" class="center">
+            <div style="font-weight:700">Piggy Bank</div>
+            <div style="font-size:1.6rem;margin:8px 0">$<span id="piggyTotal">0</span></div>
+            <button id="deposit">Deposit</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Level 3: Money Quiz -->
+      <div id="level3" class="card hidden" style="margin-top:16px">
+        <h2>Level 3 — Money Quiz 🧠</h2>
+        <p class="hint">Answer 4 quick questions. Each correct answer earns coins.</p>
+        <div id="quizArea">
+          <div id="qText" style="font-weight:700;margin-bottom:8px">Question text</div>
+          <div class="choices" id="qChoices"></div>
+          <div style="margin-top:12px" class="row">
+            <button id="submitAns">Submit Answer</button>
+            <button class="ghost" id="skipQ">Skip</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Shop -->
+      <div id="shop" class="card hidden" style="margin-top:16px">
+        <h2>Moneyville Shop 🏪</h2>
+        <p class="hint">Spend your coins on stickers and badges. Fun, not real money!</p>
+        <div class="row">
+          <div style="flex:1">
+            <div class="shop-item"><div>Rainbow Sticker</div><div>10 🪙 <button class="buy" data-cost="10" data-item="Rainbow Sticker">Buy</button></div></div>
+            <div class="shop-item"><div>Super Saver Badge</div><div>25 🪙 <button class="buy" data-cost="25" data-item="Super Saver Badge">Buy</button></div></div>
+            <div class="shop-item"><div>Virtual Pet (cute)</div><div>40 🪙 <button class="buy" data-cost="40" data-item="Virtual Pet">Buy</button></div></div>
+          </div>
+          <div style="width:260px">
+            <div class="card center">
+              <div style="font-weight:700">Your Backpack</div>
+              <div id="inventory">Nothing yet</div>
+              <div style="margin-top:8px"><button id="restart">Play Again</button></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </section>
+
+    <footer class="card" style="margin-top:16px">
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <div class="hint">Designed for kids: teach budgeting, saving, and responsible choices.</div>
+        <div><small>Tip: Open this file in a browser (Chrome/Edge/Firefox) for best play.</small></div>
+      </div>
+    </footer>
+  </div>
+
+  <script>
+    // State
+    let coins = 0;
+    let piggy = 0;
+    let level = 0; // 0 start, 1 budget, 2 save, 3 quiz
+    const qBank = [
+      {q: 'What is saving?', a: 'Putting money aside now to use later', choices:['Buying things now','Putting money aside now to use later','Giving it away']},
+      {q: 'If you have $50 and spend $20, how much is left?', a: '$30', choices:['$20','$30','$70']},
+      {q: 'Which is a need, not a want?', a: 'School supplies', choices:['A new toy','School supplies','Candy']},
+      {q: 'What is a budget?', a: 'A plan for how to use money', choices:['A secret code','A plan for how to use money','A type of food']}
+    ];
+    let currentQ = 0;
+
+    // DOM
+    const coinCount = document.getElementById('coinCount');
+    const levelBadge = document.getElementById('levelBadge');
+    const startBtn = document.getElementById('startBtn');
+    const howBtn = document.getElementById('howBtn');
+    const how = document.getElementById('how');
+    const howClose = document.getElementById('howClose');
+    const start = document.getElementById('start');
+    const gameArea = document.getElementById('gameArea');
+
+    const level1 = document.getElementById('level1');
+    const level2 = document.getElementById('level2');
+    const level3 = document.getElementById('level3');
+    const shop = document.getElementById('shop');
+
+    const allowanceLeft = document.getElementById('allowanceLeft');
+    const checkBudget = document.getElementById('checkBudget');
+    const expenseEls = document.querySelectorAll('.expense');
+
+    const saveRange = document.getElementById('saveRange');
+    const savedAmount = document.getElementById('savedAmount');
+    const piggyTotal = document.getElementById('piggyTotal');
+    const deposit = document.getElementById('deposit');
+
+    const qText = document.getElementById('qText');
+    const qChoices = document.getElementById('qChoices');
+    const submitAns = document.getElementById('submitAns');
+    const skipQ = document.getElementById('skipQ');
+
+    const buyBtns = document.querySelectorAll('.buy');
+    const inventory = document.getElementById('inventory');
+    const restart = document.getElementById('restart');
+
+    function updateCoins(){
+      coinCount.textContent = coins;
+      if(coins>=80) levelBadge.textContent = 'Money Master';
+      else if(coins>=40) levelBadge.textContent = 'Saver';
+      else levelBadge.textContent = 'Beginner';
+    }
+
+    function showLevel(n){
+      level = n;
+      start.classList.add('hidden');
+      how.classList.add('hidden');
+      gameArea.classList.remove('hidden');
+      level1.classList.toggle('hidden', n!==1);
+      level2.classList.toggle('hidden', n!==2);
+      level3.classList.toggle('hidden', n!==3);
+      shop.classList.toggle('hidden', true);
+    }
+
+    startBtn.addEventListener('click', ()=>{ coins = 10; piggy = 0; updateCoins(); showLevel(1); });
+    howBtn.addEventListener('click', ()=>{ how.classList.toggle('hidden'); });
+    howClose.addEventListener('click', ()=>{ how.classList.add('hidden'); showLevel(1); });
+
+    // Level 1: budget
+    function calculateAllowance(){
+      const base = 100;
+      let spent = 0;
+      expenseEls.forEach(cb=>{ if(cb.checked) spent += Number(cb.dataset.cost); });
+      return {left: base - spent, spent};
+    }
+
+    checkBudget.addEventListener('click', ()=>{
+      const {left, spent} = calculateAllowance();
+      allowanceLeft.textContent = left;
+      if(left>=30){
+        // good saver
+        coins += 15; updateCoins();
+        alert('Great! You saved at least $30. You earned 15 coins.');
+      } else if(left>=0){
+        coins += 6; updateCoins();
+        alert('Nice! You still have money left. You earned 6 coins.');
+      } else {
+        coins -= 5; if(coins<0) coins=0; updateCoins();
+        alert('Oh no — you spent more than you had. No extra coins and lose 5 coins.');
+      }
+      // move to level 2
+      level1.classList.add('hidden');
+      level2.classList.remove('hidden');
+    });
+
+    // Level 2: saving
+    saveRange.addEventListener('input', ()=>{ savedAmount.textContent = saveRange.value; });
+    deposit.addEventListener('click', ()=>{
+      const amount = Number(saveRange.value);
+      piggy += amount;
+      piggyTotal.textContent = piggy;
+      // reward
+      if(amount>=40){ coins += 20; alert('Amazing saver! You get 20 coins bonus.'); }
+      else if(amount>=20){ coins += 8; alert('Nice saving — you get 8 coins.'); }
+      else coins += 2;
+      updateCoins();
+      level2.classList.add('hidden');
+      startQuiz();
+    });
+
+    // Quiz
+    function startQuiz(){
+      currentQ = 0; level3.classList.remove('hidden'); showQuestion();
+      shop.classList.add('hidden');
+    }
+
+    function showQuestion(){
+      if(currentQ >= qBank.length){ finishQuiz(); return; }
+      const q = qBank[currentQ];
+      qText.textContent = `Q${currentQ+1}: ${q.q}`;
+      qChoices.innerHTML = '';
+      q.choices.forEach((c, i)=>{
+        const id = 'opt'+i;
+        const btn = document.createElement('label');
+        btn.innerHTML = `<input type='radio' name='choice' value='${c}'> ${c}`;
+        qChoices.appendChild(btn);
+      });
+    }
+
+    submitAns.addEventListener('click', ()=>{
+      const sel = document.querySelector('input[name=choice]:checked');
+      if(!sel){ alert('Pick an answer or press Skip.'); return; }
+      const ans = sel.value;
+      if(ans === qBank[currentQ].a){ coins += 7; alert('Correct! +7 coins'); }
+      else { alert('Not quite. The right answer was: ' + qBank[currentQ].a); }
+      updateCoins();
+      currentQ++; showQuestion();
+    });
+    skipQ.addEventListener('click', ()=>{ currentQ++; showQuestion(); });
+
+    function finishQuiz(){
+      level3.classList.add('hidden');
+      shop.classList.remove('hidden');
+      alert('Quiz done! Visit the shop to spend coins on rewards.');
+    }
+
+    // Shop
+    buyBtns.forEach(b=>{
+      b.addEventListener('click', ()=>{
+        const cost = Number(b.dataset.cost);
+        const item = b.dataset.item;
+        if(coins >= cost){ coins -= cost; updateCoins();
+          // add to inventory
+          const had = inventory.textContent === 'Nothing yet' ? item : inventory.textContent + ', ' + item;
+          inventory.textContent = had;
+          alert('You bought: ' + item + '!');
+        } else alert('Not enough coins. Play more rounds to earn coins!');
+      });
+    });
+
+    restart.addEventListener('click', ()=>{ location.reload(); });
+
+    // small accessibility: press Enter to start when focused
+    document.addEventListener('keydown', (e)=>{ if(e.key==='Enter' && start.classList.contains('hidden')===false) startBtn.click(); });
+
+    // initial render
+    updateCoins();
+  </script>
+</body>
+</html>
